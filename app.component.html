@@ -1,0 +1,216 @@
+<div class="app-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">INVENTARIO / CATÁLOGO</div>
+        <h1>Productos</h1>
+        <p>Administra tus productos y controla las existencias.</p>
+      </div>
+      <button class="btn btn-primary" (click)="openCreate()">＋ Nuevo producto</button>
+    </header>
+
+    <section class="stats">
+      <article class="stat-card">
+        <span class="stat-icon blue">▦</span>
+        <div><span class="stat-label">Productos registrados</span>
+          <strong>{{ totalItems }}</strong>
+        </div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon green">✓</span>
+        <div><span class="stat-label">Unidades en esta página</span>
+          <strong>{{ getPageStock() }}</strong>
+        </div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon gold">$</span>
+        <div><span class="stat-label">Valor del stock visible</span>
+          <strong>{{ getPageValue() | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <div class="alert success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Catálogo de productos</h2>
+          <p>Consulta y administra los registros de tu inventario.</p>
+        </div>
+        <span class="count-badge">{{ totalItems }} registros</span>
+      </div>
+
+      <form class="lookup" (ngSubmit)="findById(lookupId)">
+        <label for="lookupId">Consulta directa por ID</label>
+        <div class="lookup-controls">
+          <input id="lookupId" name="lookupId" [(ngModel)]="lookupId" placeholder="Pega el UUID de un producto" />
+          <button class="btn btn-secondary" type="submit" [disabled]="!lookupId.trim()">
+            Consultar ID
+          </button>
+        </div>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>PRODUCTO</th>
+              <th>PRECIO</th>
+              <th>STOCK</th>
+              <th>ESTADO</th>
+              <th class="actions-heading">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="5" class="empty-state">Cargando productos...</td>
+            </tr>
+            <tr *ngIf="!loading && products.length === 0">
+              <td colspan="5" class="empty-state">No hay productos para mostrar.</td>
+            </tr>
+            <tr *ngFor="let product of products">
+              <td>
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-description">{{ product.description || 'Sin descripción' }}</div>
+                <div class="product-id">{{ product.id }}</div>
+              </td>
+              <td class="price">{{ product.price | currency:'COP':'symbol-narrow':'1.0-2' }}</td>
+              <td><strong>{{ product.stock }}</strong> <span class="units">unid.</span></td>
+              <td>
+                <span class="stock-status" [class.low-stock]="product.stock < 5">
+                  {{ product.stock === 0 ? 'Agotado' : product.stock < 5 ? 'Stock bajo' : 'Disponible' }} </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="icon-btn" title="Ver detalle" (click)="openDetail(product)">Ver</button>
+                  <button class="icon-btn" title="Ajustar stock" (click)="openStock(product)">Stock</button>
+                  <button class="icon-btn" title="Editar" (click)="openEdit(product)">Editar</button>
+                  <button class="icon-btn danger-btn" title="Eliminar" (click)="deleteProduct(product)">Borrar</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <span>Página {{ page }} de {{ totalPages || 1 }} · {{ totalItems }} productos</span>
+        <div>
+          <button class="btn btn-secondary" (click)="previousPage()" [disabled]="page <= 1 || loading">Anterior</button>
+          <button class="btn btn-secondary" (click)="nextPage()"
+            [disabled]="page >= totalPages || loading">Siguiente</button>
+        </div>
+      </footer>
+    </section>
+
+    <footer class="page-footer">
+      ProductInventory · Angular + .NET · Datos consultados desde la API
+      <a href="https://productinventory.sbtechgroup.com/swagger/index.html" target="_blank"
+        rel="noopener noreferrer">Explorar Swagger ↗</a>
+    </footer>
+  </main>
+  <div class="modal-backdrop" *ngIf="modal" (click)="closeModal()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <h2>
+            {{ modal === 'create' ? 'Nuevo producto' :
+            modal === 'edit' ? 'Editar producto' :
+            modal === 'stock' ? 'Ajustar existencias' : 'Detalle del producto' }}
+          </h2>
+          <p>
+            {{ modal === 'stock' ? 'Usa valores positivos para sumar y negativos para restar.' :
+            modal === 'detail' ? 'Información registrada en la API.' :
+            'Completa los datos del producto.' }}
+          </p>
+        </div>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <form *ngIf="modal === 'create' || modal === 'edit'" (ngSubmit)="saveProduct()">
+          <label for="name">Nombre *</label>
+          <input id="name" name="name" [(ngModel)]="form.name" required maxlength="120"
+            placeholder="Ej. Teclado inalámbrico" />
+
+          <label for="description">Descripción</label>
+          <textarea id="description" name="description" [(ngModel)]="form.description" maxlength="500" rows="3"
+            placeholder="Descripción del producto (opcional)"></textarea>
+
+          <label for="price">Precio (COP) *</label>
+          <input id="price" name="price" type="number" [(ngModel)]="form.price" min="0.01" step="0.01" required />
+
+          <div *ngIf="modal === 'create'">
+            <label for="stock">Stock inicial *</label>
+            <input id="stock" name="stock" type="number" [(ngModel)]="form.stock" min="0" step="1" required />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving">
+              {{ saving ? 'Guardando...' : modal === 'create' ? 'Crear producto' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+
+        <form *ngIf="modal === 'stock'" (ngSubmit)="saveStock()">
+          <div class="current-stock">
+            <span>Producto</span><strong>{{ selectedProduct?.name }}</strong>
+            <span>Stock actual</span><strong>{{ selectedProduct?.stock }} unidades</strong>
+          </div>
+          <label for="quantity">Cantidad a aplicar *</label>
+          <input id="quantity" name="quantity" type="number" [(ngModel)]="stockQuantity" step="1" required />
+          <p class="help-text">Ejemplo: 5 suma cinco unidades; -3 resta tres unidades. No se permite cero ni stock
+            negativo.</p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving">
+              {{ saving ? 'Procesando...' : 'Aplicar ajuste' }}
+            </button>
+          </div>
+        </form>
+
+        <div *ngIf="modal === 'detail' && selectedProduct" class="detail-list">
+          <span>ID</span><code>{{ selectedProduct.id }}</code>
+          <span>Nombre</span><strong>{{ selectedProduct.name }}</strong>
+          <span>Descripción</span>
+          <p>{{ selectedProduct.description || 'Sin descripción' }}</p>
+          <span>Precio</span><strong>{{ selectedProduct.price | currency:'COP':'symbol-narrow':'1.0-2' }}</strong>
+          <span>Stock</span><strong>{{ selectedProduct.stock }} unidades</strong>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+            <button class="btn btn-primary" (click)="openEdit(selectedProduct)">Editar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+
+
+<!-- Botón flotante de Swagger UI -->
+<a
+  class="swagger-floating"
+  href="https://productinventory.sbtechgroup.com/swagger/index.html"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Abrir Swagger UI"
+  title="¿Deseas ir a Swagger UI?">
+
+  <img
+    src="https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/favicon-32x32.png"
+    alt="Swagger UI"
+  />
+
+  <span class="swagger-tooltip">
+    ¿Deseas ir a Swagger UI?
+  </span>
+</a>
