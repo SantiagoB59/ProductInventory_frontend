@@ -1,0 +1,292 @@
+:host {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 260px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Contenedor principal del menú */
+.sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+
+  margin: 0;
+  padding: 26px 18px;
+  box-sizing: border-box;
+
+  color: #d7deeb;
+  background: #101a2c;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #34425b #101a2c;
+}
+
+/* =========================
+   MARCA / LOGO
+========================= */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  flex-shrink: 0;
+  padding: 0 8px 30px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-logo {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  border-radius: 12px;
+  color: #101a2c;
+  background: #e8b94d;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  box-shadow: 0 5px 15px rgba(232, 185, 77, 0.14);
+}
+
+.brand-info {
+  min-width: 0;
+}
+
+.brand-info h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.brand-info span {
+  display: block;
+  margin-top: 5px;
+  color: #8e9bb1;
+  font-size: 11px;
+}
+
+/* =========================
+   SECCIÓN DEL MENÚ
+========================= */
+
+.menu-section {
+  flex: 0 0 auto;
+  padding-top: 30px;
+}
+
+.menu-label {
+  display: block;
+  padding: 0 12px 14px;
+
+  color: #77859c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Opciones de navegación */
+.menu-item {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  min-height: 44px;
+  padding: 12px 14px;
+
+  border: 1px solid transparent;
+  border-radius: 10px;
+
+  color: #aab6c9;
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.menu-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.menu-item.active {
+  color: #f3cb69;
+  background: rgba(232, 185, 77, 0.13);
+  border-color: rgba(232, 185, 77, 0.08);
+  box-shadow: inset 3px 0 0 #e8b94d;
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid #e8b94d;
+  outline-offset: 2px;
+}
+
+.menu-icon {
+  display: grid;
+  place-items: center;
+
+  width: 20px;
+  min-width: 20px;
+
+  text-align: center;
+  font-size: 19px;
+}
+
+/* =========================
+   PIE DEL MENÚ
+========================= */
+
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 18px 8px 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.user-avatar {
+  display: grid;
+  place-items: center;
+
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+
+  border-radius: 50%;
+  color: #172033;
+  background: #e8b94d;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-info {
+  min-width: 0;
+}
+
+.user-info strong,
+.user-info span {
+  display: block;
+}
+
+.user-info strong {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.user-info span {
+  margin-top: 4px;
+  color: #8e9bb1;
+  font-size: 11px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  /*
+   * En móviles el menú pasa arriba
+   * para dejar espacio al contenido.
+   */
+  :host {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .brand {
+    padding-bottom: 16px;
+    margin-bottom: 0;
+  }
+
+  .menu-section {
+    padding-top: 16px;
+  }
+
+  .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .menu-item {
+    min-height: 38px;
+    padding: 9px 11px;
+  }
+
+  .sidebar-footer {
+    margin-top: 16px;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 380px) {
+  .sidebar {
+    padding: 12px;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-info h2 {
+    font-size: 14px;
+  }
+
+  .menu-item {
+    gap: 8px;
+    padding: 8px;
+    font-size: 11px;
+  }
+}
